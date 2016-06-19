@@ -1,22 +1,25 @@
 'use strict';
 
 var map = require('map-stream');
+var Stream = require('stream').Stream;
 
-module.exports = function(callback){
+var data = module.exports = function(callback){
 	return map(function(file, next){
-		if (file.data != undefined) {}
-		else if (file.isBuffer()) file.data = file.contents.toString();
-		else if (file.isStream()) file.data = file.contents.toString();
-		else if (file.isDirectory()) {}
-		else if (file.isNull()) {}
-
-		var res = callback(file.data);
-		var done = function(data){
+		var resolve = function(data){
 			file.data = data;
+			if (data instanceof Buffer) file.contents = data;
+			else if (data instanceof Stream) file.contents = data;
 			next(null, file)
 		};
-		if (res != undefined) {}
-		else if (res instanceof Promise) res.then(done, next);
-		else done(res);
+
+		// if directory, do nothing.
+		if (file.isDirectory()) return next(null, file);
+
+		// if no data, set contents to data.
+		if (file.data === undefined) file.data = file.contents;
+
+		var res = callback(file.data);
+		if (res instanceof Promise) return res.then(resolve, next);
+		else return resolve(res);
 	})
-}
+};
