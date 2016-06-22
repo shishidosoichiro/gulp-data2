@@ -3,7 +3,30 @@
 var map = require('map-stream');
 var Stream = require('stream').Stream;
 
-var data = module.exports = function(callback){
+var slice = function(array, begin, end){
+	return Array.prototype.slice.call(array, begin, end);
+};
+var functionalize = function(src){
+	return typeof src === 'function' ? src : function(){return src};
+};
+
+var flow = function(functions){
+	if (arguments.length > 1 && !(functions instanceof Array)) functions = slice(arguments);
+	functions = functions.map(functionalize);
+	return function(arg){
+		var that = this;
+		return functions.reduce(function(arg, f){
+			if (arg instanceof Promise) return arg.then(function(arg){
+				return f.call(that, arg);
+			});
+			return f.call(that, arg);
+		}, arg);
+	};
+};
+
+var data = module.exports = function(callbacks){
+	callbacks = slice(arguments);
+
 	return map(function(file, next){
 		var resolve = function(data){
 			file.data = data;
@@ -18,7 +41,7 @@ var data = module.exports = function(callback){
 		// if no data, set contents to data.
 		if (file.data === undefined) file.data = file.contents;
 
-		var res = callback(file.data);
+		var res = flow(callbacks)(file.data);
 		if (res instanceof Promise) return res.then(resolve, next);
 		else return resolve(res);
 	})

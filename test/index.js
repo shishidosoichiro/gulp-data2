@@ -94,4 +94,53 @@ describe('gulp-data2', function(){
 		.on('end', done)
 	});
 
+	it('should flow functions.', function(done){
+		es.readArray([jsonfile])
+		.pipe(data(String, JSON.parse, function(data){
+			return new Promise(function(resolve, reject){
+				data.should.deep.equal({test: 123});
+				data.test2 = 2345;
+				resolve(data);
+			});
+		}, JSON.stringify, Buffer))
+		.pipe(es.map(function(file, next){
+			var data = file.contents.toString();
+			var json = JSON.parse(data);
+			json.test.should.equal(123);
+			json.test2.should.equal(2345);
+			next();
+		}))
+		.on('end', done)
+	});
+
+	it('should emit \'error\', if a callback reject a promise.', function(done){
+		es.readArray([jsonfile])
+		.pipe(data(String, JSON.parse, function(data){
+			return new Promise(function(resolve, reject){
+				reject('error!');
+			});
+		}, JSON.stringify, Buffer))
+		.on('error', function(e){
+			e.should.equal('error!')
+			done()
+		})
+		.on('end', function(){
+			done('failed')
+		})
+	});
+
+	it('should emit \'error\', if a callback throw a error.', function(done){
+		es.readArray([jsonfile])
+		.pipe(data(String, JSON.parse, function(data){
+			throw 'error!';
+		}, JSON.stringify, Buffer))
+		.on('error', function(e){
+			e.should.equal('error!')
+			done()
+		})
+		.on('end', function(){
+			done('failed')
+		})
+	});
+
 });
