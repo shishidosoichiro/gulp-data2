@@ -16,9 +16,7 @@ var flow = function(functions){
 	return function(arg){
 		var that = this;
 		return functions.reduce(function(arg, f){
-			if (arg instanceof Promise) return arg.then(function(arg){
-				return f.call(that, arg);
-			});
+			if (arg instanceof Promise) return arg.then(f.bind(that));
 			return f.call(that, arg);
 		}, arg);
 	};
