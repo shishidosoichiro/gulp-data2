@@ -9,7 +9,7 @@ var File = require('vinyl');
 var data = require('../');
 var string = data.string;
 
-describe('gulp-data2', function(){
+describe('gulp-flow', function(){
 	var file;
 	var jsonfile;
 	beforeEach(function(){

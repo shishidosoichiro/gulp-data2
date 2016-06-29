@@ -1,5 +1,5 @@
 {
-  "name": "gulp-data2",
+  "name": "gulp-flow",
   "version": "0.0.1",
   "description": "set data(json, xml, ...etc) to 'data' property of vinyl object like gulp-data",
   "main": "index.js",
@@ -31,6 +31,7 @@
     "vinyl": "^1.1.1"
   },
   "dependencies": {
+    "flow": "git+https://github.com/shishidosoichiro/flow.js.git",
     "map-stream": "0.0.6"
   }
 }
