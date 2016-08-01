@@ -6,8 +6,7 @@ var should = chai.should();
 var es = require('event-stream');
 var File = require('vinyl');
 
-var data = require('../');
-var string = data.string;
+var flow = require('../');
 
 describe('gulp-flow', function(){
 	var file;
@@ -29,8 +28,8 @@ describe('gulp-flow', function(){
 
 	it('should give data only to callback.', function(done){
 		es.readArray([file])
-		.pipe(data(String))
-		.pipe(data(function(data){
+		.pipe(flow(String))
+		.pipe(flow(function(data){
 			data.should.equal('test = 123')
 			return {data: data}
 		}))
@@ -43,8 +42,8 @@ describe('gulp-flow', function(){
 
 	it('should receive promise from callback.', function(done){
 		es.readArray([file])
-		.pipe(data(String))
-		.pipe(data(function(data){
+		.pipe(flow(String))
+		.pipe(flow(function(data){
 			return new Promise(function(resolve, reject){
 				resolve({data: data})
 			})
@@ -58,8 +57,8 @@ describe('gulp-flow', function(){
 
 	it('should emit \'error\', if callback return rejected Promise.', function(done){
 		es.readArray([file])
-		.pipe(data(String))
-		.pipe(data(function(data){
+		.pipe(flow(String))
+		.pipe(flow(function(data){
 			return new Promise(function(resolve, reject){
 				reject({err: data})
 			})
@@ -75,15 +74,15 @@ describe('gulp-flow', function(){
 
 	it('should convert file contents to json easily.', function(done){
 		es.readArray([jsonfile])
-		.pipe(data(String))
-		.pipe(data(JSON.parse))
-		.pipe(data(function(data){
+		.pipe(flow(String))
+		.pipe(flow(JSON.parse))
+		.pipe(flow(function(data){
 			data.should.deep.equal({test: 123})
 			data.test2 = 2345
 			return data;
 		}))
-		.pipe(data(JSON.stringify))
-		.pipe(data(Buffer))
+		.pipe(flow(JSON.stringify))
+		.pipe(flow(Buffer))
 		.pipe(es.map(function(file, next){
 			var data = file.contents.toString();
 			var json = JSON.parse(data);
@@ -96,7 +95,7 @@ describe('gulp-flow', function(){
 
 	it('should flow functions.', function(done){
 		es.readArray([jsonfile])
-		.pipe(data(String, JSON.parse, function(data){
+		.pipe(flow(String, JSON.parse, function(data){
 			return new Promise(function(resolve, reject){
 				data.should.deep.equal({test: 123});
 				data.test2 = 2345;
@@ -115,7 +114,7 @@ describe('gulp-flow', function(){
 
 	it('should emit \'error\', if a callback reject a promise.', function(done){
 		es.readArray([jsonfile])
-		.pipe(data(String, JSON.parse, function(data){
+		.pipe(flow(String, JSON.parse, function(data){
 			return new Promise(function(resolve, reject){
 				reject('error!');
 			});
@@ -131,7 +130,7 @@ describe('gulp-flow', function(){
 
 	it('should emit \'error\', if a callback throw a error.', function(done){
 		es.readArray([jsonfile])
-		.pipe(data(String, JSON.parse, function(data){
+		.pipe(flow(String, JSON.parse, function(data){
 			throw 'error!';
 		}, JSON.stringify, Buffer))
 		.on('error', function(e){
